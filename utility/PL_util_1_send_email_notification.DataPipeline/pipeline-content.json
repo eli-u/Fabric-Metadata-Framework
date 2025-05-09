@@ -1,0 +1,134 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "Get Email Addresses",
+        "description": "Gets the Email Recipients for a specific system code and dataset name.",
+        "type": "Lookup",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "source": {
+            "type": "FabricSqlDatabaseSource",
+            "sqlReaderStoredProcedureName": "[dbo].[GetEmailAddresses]",
+            "storedProcedureParameters": {
+              "DatasetName": {
+                "type": "String",
+                "value": {
+                  "value": "@pipeline().parameters.datasetName",
+                  "type": "Expression"
+                }
+              },
+              "SystemCode": {
+                "type": "String",
+                "value": {
+                  "value": "@pipeline().parameters.systemCode",
+                  "type": "Expression"
+                }
+              }
+            },
+            "queryTimeout": "02:00:00",
+            "partitionOption": "None"
+          },
+          "firstRowOnly": false,
+          "datasetSettings": {
+            "annotations": [],
+            "connectionSettings": {
+              "name": "DB_de_meta",
+              "properties": {
+                "annotations": [],
+                "type": "FabricSqlDatabase",
+                "typeProperties": {
+                  "workspaceId": "0fc852bd-5576-42e8-96a0-f54cdb1f520b",
+                  "artifactId": "9d5eb7a9-f01d-42d5-8bf6-8a9e67a5e7f5"
+                },
+                "externalReferences": {
+                  "connection": "8a457636-6f98-47fa-b8ce-1ff5eb7ad852"
+                }
+              }
+            },
+            "type": "FabricSqlDatabaseTable",
+            "schema": [],
+            "typeProperties": {
+              "schema": "dbo",
+              "table": "EmailRecipients"
+            }
+          }
+        }
+      },
+      {
+        "name": "ForEach Email Address",
+        "description": "Send a message to each email address",
+        "type": "ForEach",
+        "dependsOn": [
+          {
+            "activity": "Get Email Addresses",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "typeProperties": {
+          "items": {
+            "value": "@activity('Get Email Addresses').output.value",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "name": "Send Email",
+              "description": "Send a message to each email address",
+              "type": "Office365Outlook",
+              "dependsOn": [],
+              "typeProperties": {
+                "inputs": {
+                  "method": "post",
+                  "path": "/v2/Mail",
+                  "body": {
+                    "To": "@item().emailAddress",
+                    "Subject": "@pipeline().parameters.emailSubject",
+                    "Body": "@pipeline().parameters.emailMessage",
+                    "Sensitivity": "",
+                    "Importance": "Normal"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "parameters": {
+      "systemCode": {
+        "type": "string",
+        "defaultValue": "OWS"
+      },
+      "datasetName": {
+        "type": "string",
+        "defaultValue": "Sales"
+      },
+      "emailSubject": {
+        "type": "string",
+        "defaultValue": "Fabric Data Pipeline (PL_data_ingestion_json) Has Completed Succesfully"
+      },
+      "emailMessage": {
+        "type": "string",
+        "defaultValue": "Ingestion of Web Store Data into the Lakehouse has completed succefully."
+      }
+    },
+    "logicAppsConnectionPayload": {
+      "id": "/subscriptions/a66ca80d-94b2-4130-ab2b-8ceb5f68b96e/resourceGroups/connections-0fc852bd-5576-42e8-96a0-f54cdb1f520b/providers/Microsoft.Web/connections/1_3d40968a-b79b-4eed-be61-d8e32cdef536_6f159d36-a251-4655-82f9-e3433a2544b4",
+      "properties": {
+        "api": {
+          "name": "office365",
+          "id": "/subscriptions/a66ca80d-94b2-4130-ab2b-8ceb5f68b96e/providers/Microsoft.Web/locations/canadacentral/managedApis/office365"
+        }
+      }
+    }
+  }
+}

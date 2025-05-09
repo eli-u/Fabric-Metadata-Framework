@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "PL_util_1_send_email_notification",
+    "description": "This is a utility pipeline that sends email notifications."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "2cdef536-d8e3-be61-4eed-b79b3d40968a"
+  }
+}

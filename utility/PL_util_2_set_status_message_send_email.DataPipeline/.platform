@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "PL_util_2_set_status_message_send_email"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "bf159e35-0645-8461-4b96-978d777574b8"
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "Switch",
+        "typeProperties": {
+          "on": {
+            "value": "@pipeline().parameters.runStatus",
+            "type": "Expression"
+          },
+          "cases": [
+            {
+              "value": "Success",
+              "activities": [
+                {
+                  "type": "InvokePipeline",
+                  "typeProperties": {
+                    "parameters": {
+                      "systemCode": {
+                        "value": "@pipeline().parameters.systemCode",
+                        "type": "Expression"
+                      },
+                      "datasetName": {
+                        "value": "@pipeline().parameters.detasetName",
+                        "type": "Expression"
+                      },
+                      "emailSubject": {
+                        "value": "@concat('Fabric Data Pipeline: ',pipeline().parameters.triggeredPipeline)",
+                        "type": "Expression"
+                      },
+                      "emailMessage": {
+                        "value": "@concat(pipeline().parameters.triggeredPipeline, ' has completed successfully.')",
+                        "type": "Expression"
+                      }
+                    },
+                    "waitOnCompletion": true,
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "pipelineId": "2cdef536-d8e3-be61-4eed-b79b3d40968a",
+                    "operationType": "InvokeFabricPipeline"
+                  },
+                  "externalReferences": {
+                    "connection": "a5847183-0a28-4e58-a304-1ffd21cef267"
+                  },
+                  "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureInput": false,
+                    "secureOutput": false
+                  },
+                  "name": "Send Email Notification - Success Message",
+                  "dependsOn": []
+                }
+              ]
+            },
+            {
+              "value": "Failure",
+              "activities": [
+                {
+                  "type": "InvokePipeline",
+                  "typeProperties": {
+                    "parameters": {
+                      "systemCode": {
+                        "value": "@pipeline().parameters.systemCode",
+                        "type": "Expression"
+                      },
+                      "datasetName": {
+                        "value": "@pipeline().parameters.detasetName",
+                        "type": "Expression"
+                      },
+                      "emailSubject": {
+                        "value": "@concat('Fabric Data Pipeline: ',pipeline().parameters.triggeredPipeline)",
+                        "type": "Expression"
+                      },
+                      "emailMessage": {
+                        "value": "@concat(pipeline().parameters.triggeredPipeline, ' has failed. Please check Log.')",
+                        "type": "Expression"
+                      }
+                    },
+                    "waitOnCompletion": true,
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "pipelineId": "2cdef536-d8e3-be61-4eed-b79b3d40968a",
+                    "operationType": "InvokeFabricPipeline"
+                  },
+                  "externalReferences": {
+                    "connection": "a5847183-0a28-4e58-a304-1ffd21cef267"
+                  },
+                  "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureInput": false,
+                    "secureOutput": false
+                  },
+                  "name": "Send Email Notification - Failure Message",
+                  "dependsOn": []
+                }
+              ]
+            }
+          ],
+          "defaultActivities": [
+            {
+              "type": "InvokePipeline",
+              "typeProperties": {
+                "parameters": {
+                  "systemCode": {
+                    "value": "@pipeline().parameters.systemCode",
+                    "type": "Expression"
+                  },
+                  "datasetName": {
+                    "value": "@pipeline().parameters.detasetName",
+                    "type": "Expression"
+                  },
+                  "emailSubject": {
+                    "value": "@concat('Fabric Data Pipeline: ',pipeline().parameters.triggeredPipeline)",
+                    "type": "Expression"
+                  },
+                  "emailMessage": {
+                    "value": "@concat(pipeline().parameters.triggeredPipeline, ' has no valid status ', pipeline().parameters.runStatus, 'expecting Failed or Success' )",
+                    "type": "Expression"
+                  }
+                },
+                "waitOnCompletion": true,
+                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "pipelineId": "2cdef536-d8e3-be61-4eed-b79b3d40968a",
+                "operationType": "InvokeFabricPipeline"
+              },
+              "externalReferences": {
+                "connection": "a5847183-0a28-4e58-a304-1ffd21cef267"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Send Email Notification - Default Message",
+              "dependsOn": []
+            }
+          ]
+        },
+        "name": "Switch Status",
+        "description": "Construct a message and subject depending on the supplied status of either 'success' or 'failure'.",
+        "dependsOn": []
+      }
+    ],
+    "parameters": {
+      "runStatus": {
+        "type": "string"
+      },
+      "triggeredPipeline": {
+        "type": "string"
+      },
+      "systemCode": {
+        "type": "string"
+      },
+      "detasetName": {
+        "type": "string"
+      }
+    }
+  }
+}

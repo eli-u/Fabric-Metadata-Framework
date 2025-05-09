@@ -1,0 +1,285 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "IfCondition",
+        "typeProperties": {
+          "expression": {
+            "value": "@equals(pipeline().parameters.status,'Success')",
+            "type": "Expression"
+          },
+          "ifTrueActivities": [
+            {
+              "type": "SqlServerStoredProcedure",
+              "typeProperties": {
+                "storedProcedureName": "[dbo].[InsertPipelineLog]",
+                "storedProcedureParameters": {
+                  "EndTime": {
+                    "value": {
+                      "value": "@convertFromUtc(utcNow(), 'Mountain Standard Time')",
+                      "type": "Expression"
+                    },
+                    "type": "Datetime"
+                  },
+                  "PipelineID": {
+                    "value": {
+                      "value": "@pipeline().parameters.pipelineID",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "PipelineName": {
+                    "value": {
+                      "value": "@pipeline().parameters.pipelineName",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "RunID": {
+                    "value": {
+                      "value": "@pipeline().parameters.runID",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "SnapshotDate": {
+                    "value": {
+                      "value": "@pipeline().parameters.snapshotDate",
+                      "type": "Expression"
+                    },
+                    "type": "Datetime"
+                  },
+                  "SourceToTargetID": {
+                    "value": {
+                      "value": "@pipeline().parameters.sourceToTargetID",
+                      "type": "Expression"
+                    },
+                    "type": "Int32"
+                  },
+                  "StartTime": {
+                    "value": {
+                      "value": "@pipeline().parameters.pipelineTriggerTime",
+                      "type": "Expression"
+                    },
+                    "type": "Datetime"
+                  },
+                  "Status": {
+                    "value": {
+                      "value": "@pipeline().parameters.status",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "UpdateAt": {
+                    "value": {
+                      "value": "@convertFromUtc(utcNow(), 'Mountain Standard Time')",
+                      "type": "Expression"
+                    },
+                    "type": "Datetime"
+                  }
+                }
+              },
+              "connectionSettings": {
+                "name": "DB_de_meta",
+                "properties": {
+                  "type": "FabricSqlDatabase",
+                  "typeProperties": {
+                    "artifactId": "9d5eb7a9-f01d-42d5-8bf6-8a9e67a5e7f5",
+                    "workspaceId": "0fc852bd-5576-42e8-96a0-f54cdb1f520b"
+                  },
+                  "externalReferences": {
+                    "connection": "8a457636-6f98-47fa-b8ce-1ff5eb7ad852"
+                  },
+                  "annotations": []
+                }
+              },
+              "policy": {
+                "timeout": "0.00:10:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Log Pipeline Run Information Metadata - Success",
+              "dependsOn": []
+            }
+          ],
+          "ifFalseActivities": [
+            {
+              "type": "SqlServerStoredProcedure",
+              "typeProperties": {
+                "storedProcedureName": "[dbo].[InsertPipelineLog]",
+                "storedProcedureParameters": {
+                  "EndTime": {
+                    "value": {
+                      "value": "@convertFromUtc(utcNow(), 'Mountain Standard Time')",
+                      "type": "Expression"
+                    },
+                    "type": "Datetime"
+                  },
+                  "PipelineID": {
+                    "value": {
+                      "value": "@pipeline().parameters.pipelineID",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "PipelineName": {
+                    "value": {
+                      "value": "@pipeline().parameters.pipelineName",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "RunID": {
+                    "value": {
+                      "value": "@pipeline().parameters.runID",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "SnapshotDate": {
+                    "value": {
+                      "value": "@pipeline().parameters.snapshotDate",
+                      "type": "Expression"
+                    },
+                    "type": "Datetime"
+                  },
+                  "SourceToTargetID": {
+                    "value": {
+                      "value": "@pipeline().parameters.sourceToTargetID",
+                      "type": "Expression"
+                    },
+                    "type": "Int32"
+                  },
+                  "StartTime": {
+                    "value": {
+                      "value": "@pipeline().parameters.pipelineTriggerTime",
+                      "type": "Expression"
+                    },
+                    "type": "Datetime"
+                  },
+                  "Status": {
+                    "value": {
+                      "value": "@pipeline().parameters.status",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "UpdateAt": {
+                    "value": {
+                      "value": "@convertFromUtc(utcNow(), 'Mountain Standard Time')",
+                      "type": "Expression"
+                    },
+                    "type": "Datetime"
+                  }
+                }
+              },
+              "connectionSettings": {
+                "name": "DB_de_meta",
+                "properties": {
+                  "type": "FabricSqlDatabase",
+                  "typeProperties": {
+                    "artifactId": "9d5eb7a9-f01d-42d5-8bf6-8a9e67a5e7f5",
+                    "workspaceId": "0fc852bd-5576-42e8-96a0-f54cdb1f520b"
+                  },
+                  "externalReferences": {
+                    "connection": "8a457636-6f98-47fa-b8ce-1ff5eb7ad852"
+                  },
+                  "annotations": []
+                }
+              },
+              "policy": {
+                "timeout": "0.00:10:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Log Pipeline Run Information Metadata - Failure",
+              "dependsOn": []
+            },
+            {
+              "type": "InvokePipeline",
+              "typeProperties": {
+                "parameters": {
+                  "runStatus": {
+                    "value": "@pipeline().parameters.status",
+                    "type": "Expression"
+                  },
+                  "triggeredPipeline": {
+                    "value": "@pipeline().parameters.pipelineName",
+                    "type": "Expression"
+                  },
+                  "systemCode": {
+                    "value": "@pipeline().parameters.systemCode",
+                    "type": "Expression"
+                  },
+                  "detasetName": {
+                    "value": "@pipeline().parameters.datasetName",
+                    "type": "Expression"
+                  }
+                },
+                "waitOnCompletion": true,
+                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "pipelineId": "bf159e35-0645-8461-4b96-978d777574b8",
+                "operationType": "InvokeFabricPipeline"
+              },
+              "externalReferences": {
+                "connection": "a5847183-0a28-4e58-a304-1ffd21cef267"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Set Status and Send Message - Failure",
+              "dependsOn": [
+                {
+                  "activity": "Log Pipeline Run Information Metadata - Failure",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "Test Status",
+        "description": "Test the Status for \"Success\" or \"Failure\".",
+        "dependsOn": []
+      }
+    ],
+    "parameters": {
+      "snapshotDate": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "runID": {
+        "type": "string"
+      },
+      "sourceToTargetID": {
+        "type": "string"
+      },
+      "pipelineTriggerTime": {
+        "type": "string"
+      },
+      "pipelineID": {
+        "type": "string"
+      },
+      "pipelineName": {
+        "type": "string"
+      },
+      "systemCode": {
+        "type": "string"
+      },
+      "datasetName": {
+        "type": "string"
+      }
+    }
+  }
+}

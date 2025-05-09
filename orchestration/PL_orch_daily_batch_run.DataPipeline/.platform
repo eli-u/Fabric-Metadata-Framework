@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "PL_orch_daily_batch_run",
+    "description": "Daily Batch Run orchestration of ingestion pipeline\n"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "cb04d806-374a-88e3-4b35-34753d522560"
+  }
+}

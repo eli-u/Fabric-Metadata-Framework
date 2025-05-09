@@ -1,0 +1,171 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "Lookup",
+        "typeProperties": {
+          "source": {
+            "type": "FabricSqlDatabaseSource",
+            "sqlReaderStoredProcedureName": "[dbo].[GetBatch]",
+            "storedProcedureParameters": {
+              "PFrequency": {
+                "value": {
+                  "value": "@variables('v_frequency')",
+                  "type": "Expression"
+                },
+                "type": "String"
+              },
+              "PSystemCode": {
+                "value": {
+                  "value": "@variables('v_systemCode')",
+                  "type": "Expression"
+                },
+                "type": "String"
+              }
+            },
+            "partitionOption": "None",
+            "queryTimeout": "02:00:00"
+          },
+          "datasetSettings": {
+            "type": "FabricSqlDatabaseTable",
+            "schema": [],
+            "connectionSettings": {
+              "name": "DB_de_meta",
+              "properties": {
+                "type": "FabricSqlDatabase",
+                "typeProperties": {
+                  "artifactId": "9d5eb7a9-f01d-42d5-8bf6-8a9e67a5e7f5",
+                  "workspaceId": "0fc852bd-5576-42e8-96a0-f54cdb1f520b"
+                },
+                "externalReferences": {
+                  "connection": "8a457636-6f98-47fa-b8ce-1ff5eb7ad852"
+                },
+                "annotations": []
+              }
+            },
+            "annotations": []
+          },
+          "firstRowOnly": false
+        },
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Get Batch Run Details",
+        "dependsOn": []
+      },
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "items": {
+            "value": "@activity('Get Batch Run Details').output.value",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "InvokePipeline",
+              "typeProperties": {
+                "parameters": {
+                  "systemCode": "@variables('v_systemCode')",
+                  "datasetName": "@item().DatasetName",
+                  "runID": "@item().RunID",
+                  "snapshotDate": "@item().SnapshotDate"
+                },
+                "waitOnCompletion": true,
+                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "pipelineId": "bcf792ac-7aee-9f39-404c-97080ffcc43d",
+                "operationType": "InvokeFabricPipeline"
+              },
+              "externalReferences": {
+                "connection": "a5847183-0a28-4e58-a304-1ffd21cef267"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Run Ingestion",
+              "dependsOn": []
+            }
+          ]
+        },
+        "name": "ForEach Batch Run Information",
+        "dependsOn": [
+          {
+            "activity": "Get Batch Run Details",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[dbo].[SetBatchStatus]",
+          "storedProcedureParameters": {
+            "PFrequency": {
+              "value": {
+                "value": "@variables('v_frequency')",
+                "type": "Expression"
+              },
+              "type": "String"
+            },
+            "PSystemCode": {
+              "value": {
+                "value": "@variables('v_systemCode')",
+                "type": "Expression"
+              },
+              "type": "String"
+            }
+          }
+        },
+        "connectionSettings": {
+          "name": "DB_de_meta",
+          "properties": {
+            "type": "FabricSqlDatabase",
+            "typeProperties": {
+              "artifactId": "9d5eb7a9-f01d-42d5-8bf6-8a9e67a5e7f5",
+              "workspaceId": "0fc852bd-5576-42e8-96a0-f54cdb1f520b"
+            },
+            "externalReferences": {
+              "connection": "8a457636-6f98-47fa-b8ce-1ff5eb7ad852"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set Batch Status",
+        "dependsOn": [
+          {
+            "activity": "ForEach Batch Run Information",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ],
+    "variables": {
+      "v_frequency": {
+        "type": "String",
+        "defaultValue": "DAILY"
+      },
+      "v_systemCode": {
+        "type": "String",
+        "defaultValue": "OWS"
+      }
+    }
+  }
+}

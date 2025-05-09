@@ -1,0 +1,380 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "Lookup",
+        "typeProperties": {
+          "source": {
+            "type": "FabricSqlDatabaseSource",
+            "sqlReaderStoredProcedureName": "[dbo].[GetSourceToTargetInfo]",
+            "storedProcedureParameters": {
+              "SourceDatasetName": {
+                "value": {
+                  "value": "@pipeline().parameters.datasetName",
+                  "type": "Expression"
+                },
+                "type": "String"
+              },
+              "SourceSystemCode": {
+                "value": {
+                  "value": "@pipeline().parameters.systemCode",
+                  "type": "Expression"
+                },
+                "type": "String"
+              },
+              "Stage": {
+                "value": {
+                  "value": "@variables('v_stage')",
+                  "type": "Expression"
+                },
+                "type": "String"
+              }
+            },
+            "partitionOption": "None",
+            "queryTimeout": "02:00:00"
+          },
+          "datasetSettings": {
+            "type": "FabricSqlDatabaseTable",
+            "schema": [],
+            "connectionSettings": {
+              "name": "DB_de_meta",
+              "properties": {
+                "type": "FabricSqlDatabase",
+                "typeProperties": {
+                  "artifactId": "9d5eb7a9-f01d-42d5-8bf6-8a9e67a5e7f5",
+                  "workspaceId": "0fc852bd-5576-42e8-96a0-f54cdb1f520b"
+                },
+                "externalReferences": {
+                  "connection": "8a457636-6f98-47fa-b8ce-1ff5eb7ad852"
+                },
+                "annotations": []
+              }
+            },
+            "annotations": []
+          },
+          "firstRowOnly": false
+        },
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Get Source To Target Details",
+        "dependsOn": []
+      },
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "items": {
+            "value": "@activity('Get Source To Target Details').output.value",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "Copy",
+              "typeProperties": {
+                "source": {
+                  "type": "JsonSource",
+                  "formatSettings": {
+                    "type": "JsonReadSettings"
+                  },
+                  "storeSettings": {
+                    "type": "AzureBlobStorageReadSettings",
+                    "recursive": true,
+                    "enablePartitionDiscovery": false
+                  },
+                  "datasetSettings": {
+                    "type": "Json",
+                    "typeProperties": {
+                      "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": {
+                          "value": "@item().SourceContainer",
+                          "type": "Expression"
+                        },
+                        "folderPath": {
+                          "value": "@item().SourceRelativePathSchema",
+                          "type": "Expression"
+                        },
+                        "fileName": {
+                          "value": "@item().SourceTechnicalName",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    "schema": {},
+                    "externalReferences": {
+                      "connection": "33d1fee8-9104-4cc6-95c3-7a28a496ea86"
+                    },
+                    "annotations": []
+                  }
+                },
+                "sink": {
+                  "type": "JsonSink",
+                  "formatSettings": {
+                    "type": "JsonWriteSettings"
+                  },
+                  "storeSettings": {
+                    "type": "LakehouseWriteSettings"
+                  },
+                  "datasetSettings": {
+                    "type": "Json",
+                    "typeProperties": {
+                      "location": {
+                        "type": "LakehouseLocation",
+                        "folderPath": {
+                          "value": "@concat(item().TargetContainer,'/',item().TargetRelativePathSchema,'/',formatDateTime(pipeline().parameters.snapshotDate,'yyyy-MM-dd'))",
+                          "type": "Expression"
+                        },
+                        "fileName": {
+                          "value": "@item().TargetTechnicalName",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    "schema": {},
+                    "linkedService": {
+                      "name": "LH_de_Dev_0001",
+                      "properties": {
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "artifactId": "67758913-da29-ad31-40c4-2a1ccbcda4ad",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Files"
+                        },
+                        "annotations": []
+                      }
+                    },
+                    "annotations": []
+                  }
+                },
+                "enableStaging": false
+              },
+              "policy": {
+                "timeout": "0.00:10:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Copy Web Store Online Sales Data",
+              "description": "Copy Online Sales Data from the Web Store and Ingest to Data Lake",
+              "dependsOn": []
+            },
+            {
+              "type": "SetVariable",
+              "typeProperties": {
+                "variableName": "v_status",
+                "value": "Success"
+              },
+              "policy": {
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Set Success Status",
+              "dependsOn": [
+                {
+                  "activity": "Copy Web Store Online Sales Data",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "SetVariable",
+              "typeProperties": {
+                "variableName": "v_status",
+                "value": "Failure"
+              },
+              "policy": {
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Set Failure Status",
+              "dependsOn": [
+                {
+                  "activity": "Copy Web Store Online Sales Data",
+                  "dependencyConditions": [
+                    "Failed"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "InvokePipeline",
+              "typeProperties": {
+                "parameters": {
+                  "snapshotDate": {
+                    "value": "@formatDateTime(pipeline().parameters.snapshotDate, 'yyyy-MM-dd')",
+                    "type": "Expression"
+                  },
+                  "status": {
+                    "value": "@variables('v_status')",
+                    "type": "Expression"
+                  },
+                  "runID": {
+                    "value": "@pipeline().parameters.runID",
+                    "type": "Expression"
+                  },
+                  "sourceToTargetID": {
+                    "value": "@item().SourceToTargetID",
+                    "type": "Expression"
+                  },
+                  "pipelineTriggerTime": {
+                    "value": "@convertFromUtc(pipeline().TriggerTime, 'Mountain Standard Time')",
+                    "type": "Expression"
+                  },
+                  "pipelineID": {
+                    "value": "@pipeline().RunId",
+                    "type": "Expression"
+                  },
+                  "pipelineName": {
+                    "value": "@pipeline().PipelineName",
+                    "type": "Expression"
+                  },
+                  "systemCode": {
+                    "value": "@pipeline().parameters.systemCode",
+                    "type": "Expression"
+                  },
+                  "datasetName": {
+                    "value": "@pipeline().parameters.datasetName",
+                    "type": "Expression"
+                  }
+                },
+                "waitOnCompletion": true,
+                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "pipelineId": "9b7750f2-9b20-81df-4857-3be1bdeb528f",
+                "operationType": "InvokeFabricPipeline"
+              },
+              "externalReferences": {
+                "connection": "a5847183-0a28-4e58-a304-1ffd21cef267"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Log Pipeline Metadata - Success",
+              "dependsOn": [
+                {
+                  "activity": "Set Success Status",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "InvokePipeline",
+              "typeProperties": {
+                "parameters": {
+                  "snapshotDate": {
+                    "value": "@formatDateTime(pipeline().parameters.snapshotDate, 'yyyy-MM-dd')",
+                    "type": "Expression"
+                  },
+                  "status": {
+                    "value": "@variables('v_status')",
+                    "type": "Expression"
+                  },
+                  "runID": {
+                    "value": "@pipeline().parameters.runID",
+                    "type": "Expression"
+                  },
+                  "sourceToTargetID": {
+                    "value": "@item().SourceToTargetID",
+                    "type": "Expression"
+                  },
+                  "pipelineTriggerTime": {
+                    "value": "@convertFromUtc(pipeline().TriggerTime, 'Mountain Standard Time')",
+                    "type": "Expression"
+                  },
+                  "pipelineID": {
+                    "value": "@pipeline().RunId",
+                    "type": "Expression"
+                  },
+                  "pipelineName": {
+                    "value": "@pipeline().PipelineName",
+                    "type": "Expression"
+                  },
+                  "systemCode": {
+                    "value": "@pipeline().parameters.systemCode",
+                    "type": "Expression"
+                  },
+                  "datasetName": {
+                    "value": "@pipeline().parameters.datasetName",
+                    "type": "Expression"
+                  }
+                },
+                "waitOnCompletion": true,
+                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "pipelineId": "9b7750f2-9b20-81df-4857-3be1bdeb528f",
+                "operationType": "InvokeFabricPipeline"
+              },
+              "externalReferences": {
+                "connection": "a5847183-0a28-4e58-a304-1ffd21cef267"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Log Pipeline Metadata - Failure",
+              "dependsOn": [
+                {
+                  "activity": "Set Failure Status",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ForEach Source To Target Info",
+        "dependsOn": [
+          {
+            "activity": "Get Source To Target Details",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ],
+    "parameters": {
+      "systemCode": {
+        "type": "string",
+        "defaultValue": "OWS"
+      },
+      "datasetName": {
+        "type": "string",
+        "defaultValue": "Sales"
+      },
+      "runID": {
+        "type": "string",
+        "defaultValue": "1"
+      },
+      "snapshotDate": {
+        "type": "string",
+        "defaultValue": "2025-03-30"
+      }
+    },
+    "variables": {
+      "v_status": {
+        "type": "String",
+        "defaultValue": "Success"
+      },
+      "v_stage": {
+        "type": "String",
+        "defaultValue": "SOURCE_TO_RAW"
+      }
+    }
+  }
+}
